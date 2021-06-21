@@ -2,13 +2,16 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-19 17:40:15
+* @Last Modified time: 2021-06-21 16:18:53
  */
 package glib
 
 import (
 	"net/http"
 	"time"
+	"crypto/rand"
+	"fmt"
+	"io"
 )
 
 const (
@@ -28,22 +31,31 @@ func init() {
 	session = make(map[string]Session, 0)
 }
 
-func getSession(r *http.Request) Session {
+func uuid() (string, error) {
+	uuid := make([]byte, 16)
+	n, err := io.ReadFull(rand.Reader, uuid)
+	if n != len(uuid) || err != nil {
+		return "", err
+	}
+	// variant bits; see section 4.1.1
+	uuid[8] = uuid[8]&^0xc0 | 0x80
+	// version 4 (pseudo-random); see section 4.1.3
+	uuid[6] = uuid[6]&^0xf0 | 0x40
+	return fmt.Sprintf("%x%x%x%x%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
+}
+
+func getSession(r *http.Request) (Session,error) {
 	cookie_sid, err := r.Cookie(X_Session_ID)
 	if err != nil {
-		return nil
+		return Session{},err
 	}
 
 	sid := cookie_sid.Value
-	return session[sid]
+	return session[sid],nil
 }
 
 func NewDefaultSession(user string) Session {
-	b := make([]byte, 32)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return nil
-	}
-	id := base64.URLEncoding.EncodeToString(b)
+	id,_ := uuid()
 	ss := Session{
 		ID:        id,
 		User:      user,
@@ -65,11 +77,7 @@ func NewDefaultSession(user string) Session {
 
 //generate session
 func NewSession(user string, ttl time.Duration) Session {
-	b := make([]byte, 32)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return nil
-	}
-	id := base64.URLEncoding.EncodeToString(b)
+	id,_ := uuid()
 	ss := Session{
 		ID:        id,
 		User:      user,
@@ -121,24 +129,24 @@ func isUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 	}
 
 	sid := cookie_sid.Value
-	log.Println("current sid:", sid)
+	// log.Println("current sid:", sid)
 	if len(sid) == 0 {
 		return false
 	}
 
-	uname, ok := isSessionExpired(sid)
+	ok := isSessionExpired(sid)
 	if ok {
 		// log.Println("current sid 过期了")
 		removeFrontCookie(w, domain)
 		return false
 	}
-	log.Println("current sid 没过期")
+	// log.Println("current sid 没过期")
 	return true
 }
 
 //check whether session is expired or not?
 func isSessionExpired(sid string) bool {
-	if sess, ok := m[sid]; ok {
+	if sess, ok := session[sid]; ok {
 		return time.Now().After(sess.LoginTime.Add(sess.TTL)) //t1不变，t2是变量
 	} else {
 		return false
