@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-21 16:18:53
+* @Last Modified time: 2021-06-21 17:25:58
  */
 package glib
 
@@ -44,7 +44,7 @@ func uuid() (string, error) {
 	return fmt.Sprintf("%x%x%x%x%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
-func getSession(r *http.Request) (Session,error) {
+func GetSession(r *http.Request) (Session,error) {
 	cookie_sid, err := r.Cookie(X_Session_ID)
 	if err != nil {
 		return Session{},err
@@ -122,7 +122,7 @@ func SetCookie(w http.ResponseWriter, sess Session) {
 // }
 
 //check whether user login or not?
-func isUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
+func IsUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 	cookie_sid, err := r.Cookie(X_Session_ID)
 	if err != nil {
 		return false

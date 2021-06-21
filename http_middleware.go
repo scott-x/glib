@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:25:00
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-21 16:22:30
+* @Last Modified time: 2021-06-21 17:26:25
  */
 package glib
 
@@ -24,8 +24,8 @@ func AllowCrossOriginMiddleware() gin.HandlerFunc {
 //session auth
 func SessionAuthMiddleware(domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_,err := getSession(c.Request)
-		if err != nil || !isUserLogin(c.Writer, c.Request, domain) {
+		_,err := GetSession(c.Request)
+		if err != nil || !IsUserLogin(c.Writer, c.Request, domain) {
 			c.JSON(200, gin.H{
 				"code":    2001,
 				"message": "user not login",
