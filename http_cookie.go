@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-21 17:25:58
+* @Last Modified time: 2021-06-22 15:17:16
  */
 package glib
 
@@ -29,6 +29,12 @@ var session map[string]Session
 
 func init() {
 	session = make(map[string]Session, 0)
+	initInMain() //设置时区
+}
+
+func initInMain() {
+    var cstZone = time.FixedZone("CST", 8*3600) // 东八
+    time.Local = cstZone
 }
 
 func uuid() (string, error) {
