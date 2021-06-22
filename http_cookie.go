@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 20:59:33
+* @Last Modified time: 2021-06-22 22:20:53
  */
 package glib
 
@@ -50,6 +50,9 @@ func GetSession(r *http.Request) (Session, error) {
 	sid := cookie_sid.Value
 	if sess, ok := session[sid]; ok { //map不一定可以取到值
 		return sess, nil
+	}
+	for k,v := range sess{
+		fmt.Printf("[k,v]:(%s,%v)\n",k,v)
 	}
 
 	return Session{}, errors.New("Session not exists")
