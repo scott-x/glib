@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 15:17:16
+* @Last Modified time: 2021-06-22 15:28:12
  */
 package glib
 
@@ -143,7 +143,7 @@ func IsUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 	ok := isSessionExpired(sid)
 	if ok {
 		// log.Println("current sid 过期了")
-		removeFrontCookie(w, domain)
+		RemoveFrontCookie(w, domain)
 		return false
 	}
 	// log.Println("current sid 没过期")
@@ -159,7 +159,7 @@ func isSessionExpired(sid string) bool {
 	}
 }
 
-func removeFrontCookie(w http.ResponseWriter, domain string) {
+func RemoveFrontCookie(w http.ResponseWriter, domain string) {
 	if domain == "" {
 		domain = "127.0.0.1"
 	}
