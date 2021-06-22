@@ -2,12 +2,13 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:25:00
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 16:47:25
+* @Last Modified time: 2021-06-22 17:40:44
  */
 package glib
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func AllowCrossOriginMiddleware() gin.HandlerFunc {
@@ -25,7 +26,9 @@ func AllowCrossOriginMiddleware() gin.HandlerFunc {
 func SessionAuthMiddleware(domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sess, err := GetSession(c.Request)
+		log.Printf("sess: %v", sess)
 		if err != nil || len(sess.ID) == 0 || !IsUserLogin(c.Writer, c.Request, domain) {
+			log.Println(err)
 			c.JSON(200, gin.H{
 				"code":    2001,
 				"message": "user not login",
