@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 16:45:56
+* @Last Modified time: 2021-06-22 17:36:48
  */
 package glib
 
@@ -18,7 +18,7 @@ import (
 
 const (
 	// X_Session_ID = "X-Session-ID"
-	X_Session_ID = "websess"
+	X_Session_ID = "web_sess_das4asdasd"
 )
 
 type Session struct {
@@ -111,6 +111,7 @@ func SetCookie(w http.ResponseWriter, sess Session) {
 		Value:    sess.ID, //usually sessionId
 		Expires:  expire,
 		Path:     "/",
+		Secure:   false,
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
@@ -182,5 +183,6 @@ func RemoveFrontCookie(w http.ResponseWriter, domain string) {
 		Domain:   domain,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   false,
 	})
 }
