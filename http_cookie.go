@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 22:21:47
+* @Last Modified time: 2021-06-22 22:23:13
  */
 package glib
 
@@ -52,7 +52,7 @@ func GetSession(r *http.Request) (Session, error) {
 	if sess, ok := session[sid]; ok { //map不一定可以取到值
 		return sess, nil
 	}
-	for k,v := range sess{
+	for k,v := range session{
 		fmt.Printf("[k,v]:(%s,%v)\n",k,v)
 	}
 
