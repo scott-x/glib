@@ -2,7 +2,7 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 15:28:12
+* @Last Modified time: 2021-06-22 15:41:53
  */
 package glib
 
@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	X_Session_ID = "X-Session-ID"
+	// X_Session_ID = "X-Session-ID"
+	X_Session_ID = "websess"
 )
 
 type Session struct {
