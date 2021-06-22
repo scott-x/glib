@@ -2,16 +2,18 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 15:41:53
+* @Last Modified time: 2021-06-22 16:45:56
  */
 package glib
 
 import (
-	"net/http"
-	"time"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
+	"time"
 )
 
 const (
@@ -34,8 +36,8 @@ func init() {
 }
 
 func initInMain() {
-    var cstZone = time.FixedZone("CST", 8*3600) // 东八
-    time.Local = cstZone
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
 }
 
 func uuid() (string, error) {
@@ -51,18 +53,24 @@ func uuid() (string, error) {
 	return fmt.Sprintf("%x%x%x%x%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
-func GetSession(r *http.Request) (Session,error) {
+func GetSession(r *http.Request) (Session, error) {
 	cookie_sid, err := r.Cookie(X_Session_ID)
 	if err != nil {
-		return Session{},err
+		log.Println("GetSession:", err)
+		return Session{}, err
 	}
 
 	sid := cookie_sid.Value
-	return session[sid],nil
+	if sess, ok := session[sid]; ok { //map不一定可以取到值
+		return sess, nil
+	}
+
+	return Session{}, errors.New("Session not exists")
+
 }
 
 func NewDefaultSession(user string) Session {
-	id,_ := uuid()
+	id, _ := uuid()
 	ss := Session{
 		ID:        id,
 		User:      user,
@@ -84,7 +92,7 @@ func NewDefaultSession(user string) Session {
 
 //generate session
 func NewSession(user string, ttl time.Duration) Session {
-	id,_ := uuid()
+	id, _ := uuid()
 	ss := Session{
 		ID:        id,
 		User:      user,
@@ -136,15 +144,17 @@ func IsUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 	}
 
 	sid := cookie_sid.Value
-	// log.Println("current sid:", sid)
+	log.Println("current sid:", sid)
 	if len(sid) == 0 {
 		return false
 	}
 
 	ok := isSessionExpired(sid)
 	if ok {
-		// log.Println("current sid 过期了")
+		log.Println("current sid 过期了")
 		RemoveFrontCookie(w, domain)
+		delete(session, sid)
+		log.Println("已删除过期的sid")
 		return false
 	}
 	// log.Println("current sid 没过期")
@@ -161,6 +171,7 @@ func isSessionExpired(sid string) bool {
 }
 
 func RemoveFrontCookie(w http.ResponseWriter, domain string) {
+	log.Println("正在删除前端的cookie")
 	if domain == "" {
 		domain = "127.0.0.1"
 	}
