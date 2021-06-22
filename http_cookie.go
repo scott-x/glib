@@ -2,23 +2,17 @@
 * @Author: scottxiong
 * @Date:   2021-06-16 20:39:13
 * @Last Modified by:   scottxiong
-* @Last Modified time: 2021-06-22 17:36:48
+* @Last Modified time: 2021-06-22 20:56:27
  */
 package glib
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"time"
-)
-
-const (
-	// X_Session_ID = "X-Session-ID"
-	X_Session_ID = "web_sess_das4asdasd"
 )
 
 type Session struct {
@@ -28,29 +22,24 @@ type Session struct {
 	TTL       time.Duration
 }
 
-var session map[string]Session
+var (
+	X_Session_ID = "X_Sess_Scott"
+	session map[string]Session
+	expires = time.Hour*12 //12 hours
+)
+
+//set cookie name
+func SetCookieName(key string) {
+	X_Session_ID = key
+}
+
+//set expired time
+func SetExpireTime(h time.Duration) {
+	expires = h
+}
 
 func init() {
 	session = make(map[string]Session, 0)
-	initInMain() //设置时区
-}
-
-func initInMain() {
-	var cstZone = time.FixedZone("CST", 8*3600) // 东八
-	time.Local = cstZone
-}
-
-func uuid() (string, error) {
-	uuid := make([]byte, 16)
-	n, err := io.ReadFull(rand.Reader, uuid)
-	if n != len(uuid) || err != nil {
-		return "", err
-	}
-	// variant bits; see section 4.1.1
-	uuid[8] = uuid[8]&^0xc0 | 0x80
-	// version 4 (pseudo-random); see section 4.1.3
-	uuid[6] = uuid[6]&^0xf0 | 0x40
-	return fmt.Sprintf("%x%x%x%x%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
 func GetSession(r *http.Request) (Session, error) {
@@ -75,7 +64,7 @@ func NewDefaultSession(user string) Session {
 		ID:        id,
 		User:      user,
 		LoginTime: time.Now(),
-		TTL:       time.Second * 60 * 5, //5分钟过期
+		TTL:       expires, //12 hours 过期
 	}
 	session[id] = ss
 	return ss
@@ -141,6 +130,7 @@ func SetCookie(w http.ResponseWriter, sess Session) {
 func IsUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 	cookie_sid, err := r.Cookie(X_Session_ID)
 	if err != nil {
+		log.Println(err)
 		return false
 	}
 
@@ -166,9 +156,9 @@ func IsUserLogin(w http.ResponseWriter, r *http.Request, domain string) bool {
 func isSessionExpired(sid string) bool {
 	if sess, ok := session[sid]; ok {
 		return time.Now().After(sess.LoginTime.Add(sess.TTL)) //t1不变，t2是变量
-	} else {
-		return false
 	}
+	//if can't get sess, that means use not login
+	return true
 }
 
 func RemoveFrontCookie(w http.ResponseWriter, domain string) {
